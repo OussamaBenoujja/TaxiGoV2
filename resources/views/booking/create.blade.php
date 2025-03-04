@@ -340,69 +340,106 @@
     }
     
     document.getElementById('pickup_time').addEventListener('change', function() {
-        if (!this.value || !currentDriverWorkStart || !currentDriverWorkEnd) return;
-        const selectedTime = this.value;  
-        if (selectedTime < currentDriverWorkStart || selectedTime > currentDriverWorkEnd) {
-            Swal.fire({
-                title: 'Outside Working Hours',
-                text: `The driver only works between ${currentDriverWorkStart} and ${currentDriverWorkEnd}. Please select a time within this range.`,
-                icon: 'warning',
-                confirmButtonColor: '#f59e0b',
-                iconColor: '#f59e0b'
-            });
-            this.value = '';
-        }
-    });
+    if (!this.value || !currentDriverWorkStart || !currentDriverWorkEnd) return;
     
-    document.getElementById('booking-form').addEventListener('submit', function(e) {
-        const dateInput = document.getElementById('pickup_date');
-        const timeInput = document.getElementById('pickup_time');
+    
+    const selectedTimeMinutes = convertTimeToMinutes(this.value);
+    const workStartMinutes = convertTimeToMinutes(currentDriverWorkStart);
+    const workEndMinutes = convertTimeToMinutes(currentDriverWorkEnd);
+    
+    
+    let isTimeValid = false;
+    if (workEndMinutes < workStartMinutes) {
         
-        if (!dateInput.value || !timeInput.value) {
-            e.preventDefault();
-            Swal.fire({
-                title: 'Incomplete Booking',
-                text: 'Please select valid pickup date and time.',
-                icon: 'error',
-                confirmButtonColor: '#f59e0b'
-            });
-            return false;
-        }
+        isTimeValid = selectedTimeMinutes >= workStartMinutes || selectedTimeMinutes <= workEndMinutes;
+    } else {
         
-        const selectedDate = new Date(dateInput.value);
-        const dayOfWeek = selectedDate.getDay();
-        const dayName = DAYS_MAP[dayOfWeek].toLowerCase();
-        
-        if (!currentDriverWorkDays.map(day => day.toLowerCase()).includes(dayName)) {
-            e.preventDefault();
-            Swal.fire({
-                title: 'Invalid Day Selected',
-                text: `The driver does not work on ${dayName}s.`,
-                icon: 'error',
-                confirmButtonColor: '#f59e0b'
-            });
-            return false;
-        }
+        isTimeValid = selectedTimeMinutes >= workStartMinutes && selectedTimeMinutes <= workEndMinutes;
+    }
+    
+    if (!isTimeValid) {
+        Swal.fire({
+            title: 'Outside Working Hours',
+            text: `The driver only works between ${currentDriverWorkStart.split(':')[0]}:${currentDriverWorkStart.split(':')[1]} and ${currentDriverWorkEnd.split(':')[0]}:${currentDriverWorkEnd.split(':')[1]}. Please select a time within this range.`,
+            icon: 'warning',
+            confirmButtonColor: '#f59e0b',
+            iconColor: '#f59e0b'
+        });
+        this.value = '';
+    }
+});
+    
+document.getElementById('booking-form').addEventListener('submit', function(e) {
+    const dateInput = document.getElementById('pickup_date');
+    const timeInput = document.getElementById('pickup_time');
+    
+    if (!dateInput.value || !timeInput.value) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Incomplete Booking',
+            text: 'Please select valid pickup date and time.',
+            icon: 'error',
+            confirmButtonColor: '#f59e0b'
+        });
+        return false;
+    }
+    
+    const selectedDate = new Date(dateInput.value);
+    const dayOfWeek = selectedDate.getDay();
+    const dayName = DAYS_MAP[dayOfWeek].toLowerCase();
+    
+    if (!currentDriverWorkDays.map(day => day.toLowerCase()).includes(dayName)) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Invalid Day Selected',
+            text: `The driver does not work on ${dayName}s.`,
+            icon: 'error',
+            confirmButtonColor: '#f59e0b'
+        });
+        return false;
+    }
 
-        if (timeInput.value < currentDriverWorkStart || timeInput.value > currentDriverWorkEnd) {
+    // Time validation
+    if (timeInput.value) {
+        const selectedTimeMinutes = convertTimeToMinutes(timeInput.value);
+        const workStartMinutes = convertTimeToMinutes(currentDriverWorkStart);
+        const workEndMinutes = convertTimeToMinutes(currentDriverWorkEnd);
+        
+        let isTimeValid = false;
+        if (workEndMinutes < workStartMinutes) {
+            // Overnight shift
+            isTimeValid = selectedTimeMinutes >= workStartMinutes || selectedTimeMinutes <= workEndMinutes;
+        } else {
+            // Normal day shift
+            isTimeValid = selectedTimeMinutes >= workStartMinutes && selectedTimeMinutes <= workEndMinutes;
+        }
+        
+        if (!isTimeValid) {
             e.preventDefault();
             Swal.fire({
                 title: 'Invalid Time Selected',
-                text: `The driver only works between ${currentDriverWorkStart} and ${currentDriverWorkEnd}.`,
+                text: `The driver only works between ${currentDriverWorkStart.split(':')[0]}:${currentDriverWorkStart.split(':')[1]} and ${currentDriverWorkEnd.split(':')[0]}:${currentDriverWorkEnd.split(':')[1]}.`,
                 icon: 'error',
                 confirmButtonColor: '#f59e0b'
             });
             return false;
         }
-    });
+    }
+});
     
-    // Popular destinations click handler
     document.querySelectorAll('.destination-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Get the text content without the icon
             const destinationText = this.textContent.trim();
             document.getElementById('destination').value = destinationText;
         });
     });
+
+    function convertTimeToMinutes(timeStr) {
+    const timeParts = timeStr.split(':');
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+    return hours * 60 + minutes;
+}
+
 </script>
 @endsection

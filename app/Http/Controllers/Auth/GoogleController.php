@@ -32,19 +32,20 @@ class GoogleController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
             
-            // Check if user already exists
+            
             $user = User::where('email', $googleUser->getEmail())->first();
             
             if (!$user) {
-                // Create a new user
+               
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
                     'password' => Hash::make(rand(1, 10000)), // Random password
+                    'role' => 'client', 
                 ]);
             } else {
-                // Update the google_id if it's not set
+               
                 if (empty($user->google_id)) {
                     $user->google_id = $googleUser->getId();
                     $user->save();
@@ -52,15 +53,25 @@ class GoogleController extends Controller
             }
             
             Auth::login($user);
-
-            // Regenerate the session
-            request()->session()->regenerate();
+    
+            return redirect()->route('dashboard');
             
-            // Redirect to dashboard
-            return redirect()->intended(route('dashboard', absolute: false));
             
-        } catch (Exception $e) {
-            // Handle errors
+            session()->regenerate();
+            
+           
+            if (Auth::check()) {
+                return redirect('/dashboard');
+            } else {
+                
+                return redirect('/login')->withErrors('Authentication failed after Google login');
+            }
+        }catch (Exception $e) {
+            
+            error_log('GOOGLE AUTH ERROR: ' . $e->getMessage());
+           
+            error_log($e->getTraceAsString());
+            
             return redirect('/login')->withErrors('Google authentication failed: ' . $e->getMessage());
         }
     }

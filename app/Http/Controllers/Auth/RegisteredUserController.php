@@ -53,10 +53,10 @@ class RegisteredUserController extends Controller
             }
     
             DriverProfile::create($data);
-            
+
         }
 
-        auth()->login($user);
+        Auth::login($user);
     
         return redirect()->route('dashboard');
     }

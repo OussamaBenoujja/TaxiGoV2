@@ -18,7 +18,7 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
 
-        $user = Auth::user();
+        $user = \App\Models\User::find(Auth::id());
         $bookings = [];
     
         if ($user->role == 'client') {
