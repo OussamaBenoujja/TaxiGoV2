@@ -30,6 +30,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/bookings', [BookingController::class, 'store'])->name('booking.store');
 
+
+    Route::get('/become-driver', [ProfileController::class, 'showDriverRegistration'])
+    ->name('become.driver');
+    Route::post('/become-driver', [ProfileController::class, 'registerAsDriver'])
+        ->name('register.as.driver');
+
 });
 
 

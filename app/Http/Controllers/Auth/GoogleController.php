@@ -51,11 +51,13 @@ class GoogleController extends Controller
                 }
             }
             
-            // Login the user
             Auth::login($user);
+
+            // Regenerate the session
+            request()->session()->regenerate();
             
-            // Redirect to dashboard or home
-            return redirect()->intended('/dashboard');
+            // Redirect to dashboard
+            return redirect()->intended(route('dashboard', absolute: false));
             
         } catch (Exception $e) {
             // Handle errors

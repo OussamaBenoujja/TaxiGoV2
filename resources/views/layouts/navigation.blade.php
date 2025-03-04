@@ -97,4 +97,10 @@
             </div>
         </div>
     </div>
+
+    @if(Auth::user()->role !== 'driver')
+    <x-nav-link :href="route('become.driver')" :active="request()->routeIs('become.driver')">
+        {{ __('Become a Driver') }}
+    </x-nav-link>
+@endif
 </nav>
