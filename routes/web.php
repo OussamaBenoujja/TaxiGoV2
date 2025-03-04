@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Auth\GoogleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -30,5 +31,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store'])->name('booking.store');
 
 });
+
+
+
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
 
 require __DIR__.'/auth.php';
