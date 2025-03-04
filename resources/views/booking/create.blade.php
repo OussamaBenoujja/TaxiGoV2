@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Tailwind CSS CDN -->
+
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- SweetAlert2 CDN -->
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Font Awesome -->
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header with icon -->
+        
         <div class="flex items-center justify-center mb-8">
             <div class="bg-white p-4 rounded-full shadow-lg mr-4">
                 <i class="fas fa-taxi text-yellow-500 text-3xl"></i>
@@ -18,9 +18,9 @@
             <h1 class="text-4xl font-bold text-gray-800">Book Your Taxi</h1>
         </div>
         
-        <!-- Main content card -->
+        
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden max-w-4xl mx-auto">
-            <!-- Decorative header image -->
+           
             <div class="h-32 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 relative">
                 <div class="absolute bottom-0 left-0 right-0">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="w-full h-16">
@@ -35,11 +35,11 @@
                 </div>
             </div>
             
-            <!-- Booking form -->
+            
             <form method="POST" action="{{ route('booking.store') }}" class="p-6 sm:p-8" id="booking-form">
                 @csrf
                 
-                <!-- Progress steps -->
+                
                 <div class="flex justify-between items-center mb-8 px-2">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
@@ -65,8 +65,7 @@
                         <span class="text-xs font-medium mt-2">Confirm</span>
                     </div>
                 </div>
-                
-                <!-- Driver selection -->
+
                 <div class="mb-6">
                     <label for="driver_id" class="block font-medium text-gray-700 mb-2 flex items-center">
                         <i class="fas fa-user-tie mr-2 text-yellow-500"></i>
@@ -96,7 +95,6 @@
                     </div>
                 </div>
 
-                <!-- Driver profile card -->
                 <div id="driver-profile" class="mb-8 hidden">
                     <div class="bg-gray-50 rounded-xl border border-gray-200 p-6 shadow-sm">
                         <div class="flex items-center mb-4">
@@ -426,7 +424,7 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
         }
     }
 });
-    
+
     document.querySelectorAll('.destination-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const destinationText = this.textContent.trim();

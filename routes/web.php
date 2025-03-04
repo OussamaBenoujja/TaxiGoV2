@@ -19,18 +19,15 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
+
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-
-    
     Route::get('/book-taxi', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/book-taxi', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/bookings', [BookingController::class, 'store'])->name('booking.store');
-
-
     Route::get('/become-driver', [ProfileController::class, 'showDriverRegistration'])
     ->name('become.driver');
     Route::post('/become-driver', [ProfileController::class, 'registerAsDriver'])
@@ -38,9 +35,10 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
 
+Route::post('/bookings/{bookingId}/update-status', [BookingController::class, 'updateStatus'])
+    ->name('bookings.update-status');
 
 require __DIR__.'/auth.php';

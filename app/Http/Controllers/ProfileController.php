@@ -17,16 +17,32 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-
         $user = \App\Models\User::find(Auth::id());
+        
+        // Debug logging
+        error_log('User Role: ' . $user->role);
+        error_log('User ID: ' . $user->id);
+    
         $bookings = [];
     
         if ($user->role == 'client') {
-            $bookings = Booking::where('client_id', $user->id)->with('driver')->get();
+            $bookings = Booking::where('client_id', $user->id)
+                ->with('driver')
+                ->orderBy('pickup_time', 'desc')
+                ->get();
+            
+            error_log('Client Bookings Count: ' . $bookings->count());
+        } elseif ($user->role == 'driver') {
+            $bookings = Booking::where('driver_id', $user->id)
+                ->with('client')
+                ->orderBy('pickup_time', 'desc')
+                ->get();
+            
+            error_log('Driver Bookings Count: ' . $bookings->count());
+            error_log('Driver Bookings: ' . json_encode($bookings->toArray()));
         }
-
+    
         return view('profile.edit', compact('bookings'));
-
     }
 
     public function update(ProfileUpdateRequest $request): RedirectResponse

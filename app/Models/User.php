@@ -52,4 +52,9 @@ class User extends Authenticatable
 {
     return $this->hasOne(DriverProfile::class);
 }
+
+public function bookings()
+{
+    return $this->hasMany(Booking::class, 'driver_id');
+}
 }
