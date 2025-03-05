@@ -20,3 +20,10 @@ window.Echo = new Echo({
 console.log('Pusher Key:', window.Echo.options.key);
 console.log('Auth Endpoint:', window.Echo.options.authEndpoint);
 Pusher.logToConsole = true;
+/**
+ * Echo exposes an expressive API for subscribing to channels and listening
+ * for events that are broadcast by Laravel. Echo and event broadcasting
+ * allow your team to quickly build robust real-time web applications.
+ */
+
+import './echo';

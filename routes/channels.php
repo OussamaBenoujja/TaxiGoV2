@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('chat', function () {
-    return true;
+Broadcast::channel('chat.{bookingId}', function ($user, $bookingId) {
+    $booking = \App\Models\Booking::find($bookingId);
+    return $user->id === $booking->client_id || $user->id === $booking->driver_id;
 });
