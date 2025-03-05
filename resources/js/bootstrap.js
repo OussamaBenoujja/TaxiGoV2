@@ -14,7 +14,7 @@ window.Echo = new Echo({
     key: '4cb653de810be070150e',
     cluster: 'eu',
     forceTLS: true,
-    authEndpoint: '/pusher/auth' // Explicitly set this
+    authEndpoint: '/broadcasting/auth' /
 });
 
 console.log('Echo initialized with authEndpoint:', '/broadcasting/auth');
@@ -24,5 +24,5 @@ console.log('Bootstrap.js loaded, Echo initialized with:', {
     key: '4cb653de810be070150e',
     cluster: 'eu',
     forceTLS: true,
-    authEndpoint: '/broadcasting/auth'
+    authEndpoint: '/pusher/auth'
 });
