@@ -24,7 +24,12 @@ class NewMessage implements ShouldBroadcast
 
     public function broadcastOn(): PrivateChannel
     {
-        return new PrivateChannel('chat.'.$this->message->booking_id);
+        return new PrivateChannel('chat');
+    }
+    
+    public function broadcastAs()
+    {
+        return 'NewMessage';
     }
     
     public function broadcastWith(): array

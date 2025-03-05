@@ -77,76 +77,79 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
-    // Scroll to bottom on page load
+    
     scrollToBottom();
     
-    console.log('Echo available:', !!window.Echo);
     
-    // Initialize Echo and listen for messages
+    console.log('Echo available:', typeof window.Echo !== 'undefined');
+    
+    
     if (window.Echo) {
         try {
             console.log('Setting up Echo listener for channel: chat.{{ $booking->id }}');
             
-            window.Echo.private('chat.{{ $booking->id }}').listen('App\\Events\\NewMessage', (e) => {
-                    // Log the received event data
+            window.Echo.private(`chat`)
+                .listen('.NewMessage', (e) => {
+                    
                     console.log('NewMessage event received:', e);
                     
-                    // Create message element
+                   
+                    if (e.sender_id == {{ Auth::id() }}) {
+                        return;
+                    }
+        
                     const messageDiv = document.createElement('div');
+                    messageDiv.className = 'flex justify-start';
                     
-                    // Check if this is the current user's message
-                    // Note: accessing properties directly from the event data
-                    const isCurrentUser = e.sender_id == {{ Auth::id() }};
                     
-                    messageDiv.className = isCurrentUser ? 'flex justify-end' : 'flex justify-start';
+                    let timestamp = '';
+                    try {
+                        timestamp = new Date(e.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } catch (err) {
+                        console.error('Error formatting timestamp:', err);
+                        timestamp = 'just now';
+                    }
                     
                     messageDiv.innerHTML = `
-                        <div class="relative max-w-xl px-4 py-2 rounded-lg shadow 
-                            ${isCurrentUser ? 'bg-yellow-500 text-black' : 'bg-gray-800 text-white'}">
-                            <div class="font-medium text-sm">
-                                ${isCurrentUser ? 'You' : e.sender_name}
-                            </div>
+                        <div class="relative max-w-xl px-4 py-2 rounded-lg shadow bg-gray-800 text-white">
+                            <div class="font-medium text-sm">${e.sender_name}</div>
                             <div class="mt-1">${e.message}</div>
-                            <div class="mt-1 text-xs ${isCurrentUser ? 'text-yellow-900' : 'text-gray-400'}">
-                                ${new Date(e.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            <div class="mt-1 text-xs text-gray-400">
+                                ${timestamp}
                             </div>
                         </div>
                     `;
                     
-                    // Add message to chat
-                    chatMessages.appendChild(messageDiv);
                     
-                    // Scroll to bottom
+                    chatMessages.appendChild(messageDiv);
+                    messageDiv.style.marginTop = '1rem';
                     scrollToBottom();
                 });
+                
+            console.log('Echo listener setup complete');
         } catch (error) {
             console.error('Error setting up Echo:', error);
         }
     } else {
         console.error('Echo is not available. Real-time messaging will not work.');
     }
-    
-    // Function to send message
     function sendMessage() {
         if (!messageInput.value.trim()) return;
         
         const messageText = messageInput.value.trim();
-        
-        // Get CSRF token
-        const token = document.querySelector('meta[name="csrf-token"]');
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         if (!token) {
-            alert('CSRF token not found. Please refresh the page.');
+            console.error('CSRF token not found. Please refresh the page.');
             return;
         }
         
         console.log('Sending message:', messageText);
         
-        // Send message via AJAX
         fetch('{{ route("messages.store", $booking->id) }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token.getAttribute('content'),
+                'X-CSRF-TOKEN': token,
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
@@ -168,18 +171,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'flex justify-end';
             
+            // Format timestamp safely
+            let timestamp = '';
+            try {
+                timestamp = new Date(data.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch (err) {
+                console.error('Error formatting timestamp:', err);
+                timestamp = 'just now';
+            }
+            
             messageDiv.innerHTML = `
                 <div class="relative max-w-xl px-4 py-2 rounded-lg shadow bg-yellow-500 text-black">
                     <div class="font-medium text-sm">You</div>
                     <div class="mt-1">${data.message}</div>
                     <div class="mt-1 text-xs text-yellow-900">
-                        ${new Date(data.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        ${timestamp}
                     </div>
                 </div>
             `;
             
             // Add message to chat
             chatMessages.appendChild(messageDiv);
+            
+            // Add some spacing between messages
+            messageDiv.style.marginTop = '1rem';
             
             // Clear input
             messageInput.value = '';
@@ -189,7 +204,16 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error sending message:', error);
-            alert('Error sending message: ' + error.message);
+            // Replace alert with a more user-friendly approach
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'p-2 mb-2 text-sm text-red-500 bg-red-100 rounded';
+            errorDiv.textContent = 'Error sending message. Please try again.';
+            chatMessages.appendChild(errorDiv);
+            
+            // Remove error message after 3 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
         });
     }
     

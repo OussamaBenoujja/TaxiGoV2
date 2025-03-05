@@ -12,9 +12,7 @@ use App\Models\Booking;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
+    
     public function edit(Request $request): View
     {
         $user = \App\Models\User::find(Auth::id());
@@ -78,7 +76,6 @@ class ProfileController extends Controller
 
     public function showDriverRegistration()
 {
-    // Only show this form to clients, not existing drivers
     if (Auth::user()->role === 'driver') {
         return redirect()->route('dashboard')->with('error', 'You are already registered as a driver.');
     }
@@ -90,12 +87,12 @@ public function registerAsDriver(Request $request)
 {
     $user = Auth::user();
     
-    // Only allow clients to become drivers
+    
     if ($user->role === 'driver') {
         return redirect()->route('dashboard')->with('error', 'You are already registered as a driver.');
     }
     
-    // Validate the driver profile data
+    
     $request->validate([
         'car_model' => 'required|string|max:255',
         'city' => 'required|string|max:255',
@@ -106,11 +103,11 @@ public function registerAsDriver(Request $request)
         'profile_picture' => 'nullable|image|max:2048',
     ]);
     
-    // Update user role
+   
     $user->role = 'driver';
     $user->save();
     
-    // Create driver profile
+    
     $data = [
         'user_id' => $user->id,
         'description' => $request->description,

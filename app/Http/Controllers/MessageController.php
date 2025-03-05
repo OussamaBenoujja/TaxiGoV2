@@ -49,7 +49,6 @@ class MessageController extends Controller
     public function store(Request $request, $bookingId): JsonResponse
     {
         try {
-            // Log the beginning of the method
             error_log('MessageController@store method called');
             error_log('Request data: ' . json_encode($request->all()));
             error_log('Booking ID: ' . $bookingId);
@@ -67,8 +66,8 @@ class MessageController extends Controller
             ]);
             error_log('Validation passed');
             
-            $receiverId = (Auth::id() == $booking->client_id) 
-                ? $booking->driver_id 
+            $receiverId = (Auth::id() == $booking->client_id)
+                ? $booking->driver_id
                 : $booking->client_id;
             error_log('Receiver ID determined: ' . $receiverId);
             
@@ -84,11 +83,32 @@ class MessageController extends Controller
             error_log('Sender relationship loaded');
             
             try {
+                error_log('About to broadcast message: ' . $message->id);
+                error_log('Broadcast channel: chat.' . $message->booking_id);
+                error_log('Event payload: ' . json_encode([
+                    'id' => $message->id,
+                    'sender_id' => $message->sender_id,
+                    'sender_name' => $message->sender->name,
+                    'message' => $message->message,
+                    'created_at' => $message->created_at->format('Y-m-d H:i:s'),
+                ]));
+                
                 broadcast(new NewMessage($message))->toOthers();
+                
                 error_log('Message broadcasted successfully');
+                
+                // Add verification that broadcast service is configured
+                $broadcastDriver = config('broadcasting.default');
+                error_log('Broadcast driver: ' . $broadcastDriver);
+                
+                if ($broadcastDriver === 'pusher') {
+                    $pusherConfig = config('broadcasting.connections.pusher');
+                    error_log('Pusher app ID configured: ' . ($pusherConfig['app_id'] ? 'Yes' : 'No'));
+                    error_log('Pusher configured with encryption: ' . ($pusherConfig['encrypted'] ? 'Yes' : 'No'));
+                }
             } catch (\Exception $e) {
                 error_log('Broadcast error: ' . $e->getMessage());
-                // Continue execution even if broadcast fails
+                error_log('Broadcast error trace: ' . $e->getTraceAsString());
             }
             
             error_log('Returning JSON response');
