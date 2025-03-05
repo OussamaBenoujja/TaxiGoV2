@@ -30,9 +30,9 @@ class AdminController extends Controller
         // Revenue statistics (assuming you add a payment column to bookings later)
         $totalRevenue = 0; // Placeholder for future implementation
         
-        // Monthly booking statistics
-        $monthlyStats = Booking::selectRaw('COUNT(*) as count, MONTH(created_at) as month')
-            ->whereYear('created_at', date('Y'))
+        // Monthly booking statistics - Fix for PostgreSQL
+        $monthlyStats = Booking::selectRaw('COUNT(*) as count, EXTRACT(MONTH FROM created_at) as month')
+            ->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [date('Y')])
             ->groupBy('month')
             ->orderBy('month')
             ->get()
@@ -101,7 +101,7 @@ class AdminController extends Controller
             ->pluck('count', 'status')
             ->toArray();
             
-        // Get bookings per day for the last 30 days
+        // Get bookings per day for the last 30 days - PostgreSQL compatible
         $dailyStats = Booking::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->where('created_at', '>=', Carbon::now()->subDays(30))
             ->groupBy('date')

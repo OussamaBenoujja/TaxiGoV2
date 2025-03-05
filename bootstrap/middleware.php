@@ -14,7 +14,9 @@ return [
     'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
     'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
     'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-    // Add your middleware here
+    
+    // Make sure this line is correct - the AdminMiddleware class should be fully qualified
     'admin' => \App\Http\Middleware\AdminMiddleware::class,
+    
     // Other middleware...
 ];
