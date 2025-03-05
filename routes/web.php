@@ -41,4 +41,14 @@ Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallba
 Route::post('/bookings/{bookingId}/update-status', [BookingController::class, 'updateStatus'])
     ->name('bookings.update-status');
 
+
+    use App\Http\Controllers\MessageController;
+
+    
+Route::middleware(['auth'])->group(function () {
+        Route::get('/bookings/{bookingId}/chat', [MessageController::class, 'index'])->name('bookings.chat');
+        Route::post('/bookings/{bookingId}/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
+    });
+
 require __DIR__.'/auth.php';

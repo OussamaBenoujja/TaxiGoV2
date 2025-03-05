@@ -10,7 +10,13 @@
                 <p><strong>Driver:</strong> {{ $booking->driver->name }}</p>
                 <p><strong>Pickup Time:</strong> {{ $booking->pickup_time }}</p>
                 <p><strong>Status:</strong> {{ ucfirst($booking->status) }}</p>
+                @if($booking->status == 'confirmed')
+                    <a href="{{ route('bookings.chat', $booking->id) }}" class="text-blue-600 hover:text-blue-900 ml-2">
+                        <i class="fas fa-comments"></i> Chat
+                    </a>
+                @endif
             </div>
+
         @endforeach
     </div>
 </div>

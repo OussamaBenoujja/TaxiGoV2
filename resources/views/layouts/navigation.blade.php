@@ -103,4 +103,47 @@
         {{ __('Become a Driver') }}
     </x-nav-link>
 @endif
+
+<div id="message-notification" class="relative ml-3">
+    <a href="#" class="text-gray-500 dark:text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+    </a>
+    <span id="unread-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+</div>
+
 </nav>
+
+
+@push('scripts')
+@auth
+<script>
+    // Only run if user is logged in
+    
+    // Check for unread messages every 60 seconds
+    function checkUnreadMessages() {
+        fetch('{{ route("messages.unread-count") }}')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('unread-badge');
+                if (badge) {
+                    if (data.unreadCount > 0) {
+                        badge.textContent = data.unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            });
+    }
+    
+    // Check on page load and periodically
+    document.addEventListener('DOMContentLoaded', function() {
+        checkUnreadMessages();
+        setInterval(checkUnreadMessages, 60000);
+    });
+    
+</script>
+@endauth
+@endpush

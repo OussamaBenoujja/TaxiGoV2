@@ -128,7 +128,42 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($bookings as $booking)
                             <tr>
-                                <!-- Previous columns remain the same -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900">{{ $booking->driver->name }}</div>
+                                                        <div class="text-sm text-gray-500">
+                                                            @if($booking->driver->driverProfile)
+                                                                {{ $booking->driver->driverProfile->car_model }}
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('M d, Y') }}</div>
+                                                <div class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('h:i A') }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ $booking->pickup_place }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ $booking->destination }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    @if($booking->status == 'pending') bg-yellow-100 text-yellow-800
+                                                    @elseif($booking->status == 'confirmed') bg-green-100 text-green-800
+                                                    @elseif($booking->status == 'cancelled') bg-red-100 text-red-800
+                                                    @endif">
+                                                    {{ ucfirst($booking->status) }}
+                                                </span>
+                                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                         @if($booking->status == 'pending') bg-yellow-100 text-yellow-800
@@ -149,7 +184,17 @@
                                             </button>
                                         </form>
                                     @endif
+                                    
+                                    @if($booking->status == 'confirmed')
+                                        <a href="{{ route('bookings.chat', $booking->id) }}" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                            </svg>
+                                            Chat
+                                        </a>
+                                    @endif
                                 </td>
+                                
                             </tr>
                         @endforeach
                     </tbody>
