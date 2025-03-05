@@ -43,15 +43,15 @@ Route::post('/bookings/{bookingId}/update-status', [BookingController::class, 'u
     ->name('bookings.update-status');
 
 
-    use App\Http\Controllers\MessageController;
-    Broadcast::routes();
+use App\Http\Controllers\MessageController;
+Broadcast::routes();
 Broadcast::routes(['middleware' => ['web', 'auth']]);
 Route::middleware(['auth'])->group(function () {
         Route::get('/bookings/{bookingId}/chat', [MessageController::class, 'index'])->name('bookings.chat');
         Route::post('/bookings/{bookingId}/messages', [MessageController::class, 'store'])->name('messages.store');
         Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
     });
-// Add this to routes/web.php (temporarily for testing)
+
 Route::get('/test-auth', function () {
     return [
         'auth_route' => '/broadcasting/auth',

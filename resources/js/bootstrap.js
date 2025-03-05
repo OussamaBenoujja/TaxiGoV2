@@ -14,7 +14,7 @@ window.Echo = new Echo({
     key: '4cb653de810be070150e',
     cluster: 'eu',
     forceTLS: true,
-    authEndpoint: '/broadcasting/auth' // Explicitly set this
+    authEndpoint: '/pusher/auth' // Explicitly set this
 });
 
 console.log('Echo initialized with authEndpoint:', '/broadcasting/auth');
