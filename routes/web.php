@@ -11,6 +11,27 @@ Route::get('/', function () {
 });
 
 
+Route::get('/admin/test', function () {
+    return "Admin test page - no middleware";
+});
+Route::middleware(['admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard-test', function() {
+        return "If you see this, the admin middleware allowed you through!";
+    });
+});
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    // Other admin routes...
+});
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
+    Route::get('/bookings', [App\Http\Controllers\AdminController::class, 'bookings'])->name('admin.bookings');
+    Route::get('/drivers', [App\Http\Controllers\AdminController::class, 'drivers'])->name('admin.drivers');
+    Route::get('/statistics', [App\Http\Controllers\AdminController::class, 'statistics'])->name('admin.statistics');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -58,5 +79,6 @@ Route::get('/test-auth', function () {
         'route_exists' => true
     ];
 });
+
 
 require __DIR__.'/auth.php';
