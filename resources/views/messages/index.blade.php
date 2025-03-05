@@ -84,24 +84,20 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Echo available:', typeof window.Echo !== 'undefined');
     
     
-    if (window.Echo) {
+    if (Echo) {
         try {
+            console.log('Echo object:', window.Echo);
+            console.log('Pusher object:', window.Pusher);
             console.log('Setting up Echo listener for channel: chat.{{ $booking->id }}');
-            
-            window.Echo.private(`chat`)
-                .listen('.NewMessage', (e) => {
+            console.log(Echo);
+            Echo.channel('chat')
+            .listen('NewMessage', (e) => {
                     
                     console.log('NewMessage event received:', e);
                     
-                   
-                    if (e.sender_id == {{ Auth::id() }}) {
-                        return;
-                    }
-        
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'flex justify-start';
-                    
-                    
+
                     let timestamp = '';
                     try {
                         timestamp = new Date(e.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});

@@ -13,9 +13,10 @@ window.Echo = new Echo({
     key: '4cb653de810be070150e',
     cluster: 'eu',
     forceTLS: true,
-    authEndpoint: '/broadcasting/auth'
+    
 });
 
-console.log('Echo initialized with authEndpoint:', '/broadcasting/auth');
-
-console.log('Bootstrap.js loaded, Echo initialized');
+// Add extensive logging
+console.log('Pusher Key:', window.Echo.options.key);
+console.log('Auth Endpoint:', window.Echo.options.authEndpoint);
+Pusher.logToConsole = true;

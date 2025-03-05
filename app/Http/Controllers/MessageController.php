@@ -93,7 +93,9 @@ class MessageController extends Controller
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
                 ]));
                 
-                broadcast(new NewMessage($message))->toOthers();
+                if(broadcast(new NewMessage($message))->toOthers()){
+                    error_log('Message broadcasted successfully');
+                }
                 
                 error_log('Message broadcasted successfully');
                 

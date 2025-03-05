@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('chat', function ($user, $bookingId) {
-    // Allow any authenticated user to access this channel
+Broadcast::channel('chat', function () {
     return true;
 });
