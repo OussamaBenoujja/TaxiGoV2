@@ -17,23 +17,23 @@ class MessageController extends Controller
     {
         $booking = Booking::findOrFail($bookingId);
         
-        // Make sure the user is either the client or driver of this booking
+        
         if (Auth::id() != $booking->client_id && Auth::id() != $booking->driver_id) {
             abort(403, 'Unauthorized');
         }
         
-        // Get the other user (if client, get driver and vice versa)
+       
         $otherUser = (Auth::id() == $booking->client_id) 
             ? User::find($booking->driver_id) 
             : User::find($booking->client_id);
             
-        // Get all messages for this booking
+       
         $messages = Message::where('booking_id', $bookingId)
             ->with('sender')
             ->orderBy('created_at')
             ->get();
             
-        // Mark all messages as read where the current user is the receiver
+        
         Message::where('booking_id', $bookingId)
             ->where('receiver_id', Auth::id())
             ->where('is_read', false)
@@ -48,36 +48,56 @@ class MessageController extends Controller
     
     public function store(Request $request, $bookingId): JsonResponse
     {
-        $booking = Booking::findOrFail($bookingId);
-        
-        // Make sure the user is either the client or driver of this booking
-        if (Auth::id() != $booking->client_id && Auth::id() != $booking->driver_id) {
-            abort(403, 'Unauthorized');
+        try {
+            // Log the beginning of the method
+            error_log('MessageController@store method called');
+            error_log('Request data: ' . json_encode($request->all()));
+            error_log('Booking ID: ' . $bookingId);
+            
+            $booking = Booking::findOrFail($bookingId);
+            error_log('Booking found: ' . $booking->id);
+            
+            if (Auth::id() != $booking->client_id && Auth::id() != $booking->driver_id) {
+                error_log('Unauthorized access attempt: User ' . Auth::id());
+                abort(403, 'Unauthorized');
+            }
+            
+            $request->validate([
+                'message' => 'required|string',
+            ]);
+            error_log('Validation passed');
+            
+            $receiverId = (Auth::id() == $booking->client_id) 
+                ? $booking->driver_id 
+                : $booking->client_id;
+            error_log('Receiver ID determined: ' . $receiverId);
+            
+            $message = Message::create([
+                'booking_id' => $bookingId,
+                'sender_id' => Auth::id(),
+                'receiver_id' => $receiverId,
+                'message' => $request->message,
+            ]);
+            error_log('Message created: ' . $message->id);
+            
+            $message->load('sender');
+            error_log('Sender relationship loaded');
+            
+            try {
+                broadcast(new NewMessage($message))->toOthers();
+                error_log('Message broadcasted successfully');
+            } catch (\Exception $e) {
+                error_log('Broadcast error: ' . $e->getMessage());
+                // Continue execution even if broadcast fails
+            }
+            
+            error_log('Returning JSON response');
+            return response()->json($message);
+        } catch (\Exception $e) {
+            error_log('Exception in MessageController@store: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-        
-        $request->validate([
-            'message' => 'required|string',
-        ]);
-        
-        // Determine receiver (if sender is client, receiver is driver and vice versa)
-        $receiverId = (Auth::id() == $booking->client_id) 
-            ? $booking->driver_id 
-            : $booking->client_id;
-        
-        $message = Message::create([
-            'booking_id' => $bookingId,
-            'sender_id' => Auth::id(),
-            'receiver_id' => $receiverId,
-            'message' => $request->message,
-        ]);
-        
-        // Load sender relationship for the event
-        $message->load('sender');
-        
-        // Broadcast the message
-        broadcast(new NewMessage($message))->toOthers();
-        
-        return response()->json($message);
     }
     
     public function unreadCount(): JsonResponse

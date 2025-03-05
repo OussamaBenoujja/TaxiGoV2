@@ -57,14 +57,53 @@
         </div>
     </div>
 </div>
+<!-- Add this right after the chat container -->
+<div class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+    <h3 class="font-medium mb-2">Debug Info:</h3>
+    <p>Booking ID: {{ $booking->id }}</p>
+    <p>Your ID: {{ Auth::id() }}</p>
+    <p>Other User ID: {{ $otherUser->id }}</p>
+    <p>Channel: chat.{{ $booking->id }}</p>
+    <p>CSRF Token Present: {{ csrf_token() ? 'Yes' : 'No' }}</p>
+    <button onclick="testEcho()" class="mt-2 bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded">Test Echo</button>
+</div>
 
+<script>
+function testEcho() {
+    console.log('Testing Echo configuration...');
+    
+    if (!window.Echo) {
+        console.error('Echo not defined');
+        alert('Echo is not defined. Check your bootstrap.js file.');
+        return;
+    }
+    
+    console.log('Echo object:', window.Echo);
+    console.log('Pusher object:', window.Pusher);
+    
+    if (window.Echo.connector && window.Echo.connector.pusher) {
+        console.log('Pusher connection state:', window.Echo.connector.pusher.connection.state);
+    }
+    
+    alert('Echo debug info logged to console. Please check browser developer tools.');
+}
+</script>
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded event fired');
+        
         const messageForm = document.getElementById('message-form');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-message-btn');
         const chatMessages = document.getElementById('chat-messages');
+        
+        console.log('Elements found:', {
+            messageForm: !!messageForm,
+            messageInput: !!messageInput, 
+            sendButton: !!sendButton,
+            chatMessages: !!chatMessages
+        });
         
         // Scroll to bottom of chat
         function scrollToBottom() {
@@ -74,12 +113,15 @@
         // Scroll to bottom on page load
         scrollToBottom();
         
+        // Check if Echo is defined
+        console.log('Echo available:', !!window.Echo);
+        
         // Initialize Echo and listen for messages
         if (window.Echo) {
             try {
-                window.Echo.private('chat.{{ $booking->id }}')
-                    .listen('NewMessage', (e) => {
-                        console.log('Message received:', e);
+                console.log('Setting up Echo channel: chat.{{ $booking->id }}');
+                window.Echo.private('chat.{{ $booking->id }}').listen('.NewMessage', (e) => {
+                        console.log('Message received via Echo:', e);
                         
                         // Create message element
                         const messageDiv = document.createElement('div');
@@ -104,6 +146,7 @@
                         // Scroll to bottom
                         scrollToBottom();
                     });
+                console.log('Echo channel setup complete');
             } catch (error) {
                 console.error('Error setting up Echo:', error);
             }
@@ -113,29 +156,48 @@
         
         // Function to send message
         function sendMessage() {
-            if (!messageInput.value.trim()) return;
+            if (!messageInput.value.trim()) {
+                console.log('Message input is empty, not sending');
+                return;
+            }
             
-            console.log('Sending message:', messageInput.value);
+            const messageText = messageInput.value.trim();
+            console.log('Sending message:', messageText);
+            
+            // Get CSRF token
+            const token = document.querySelector('meta[name="csrf-token"]');
+            if (!token) {
+                console.error('CSRF token not found!');
+                alert('CSRF token not found. Please refresh the page.');
+                return;
+            }
+            console.log('CSRF token found:', token.getAttribute('content'));
             
             // Send message via AJAX
+            console.log('Sending fetch request to:', '{{ route("messages.store", $booking->id) }}');
             fetch('{{ route("messages.store", $booking->id) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': token.getAttribute('content'),
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: messageInput.value
+                    message: messageText
                 })
             })
             .then(response => {
+                console.log('Response received:', response);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    console.error('Response not OK:', response.status, response.statusText);
+                    return response.text().then(text => {
+                        throw new Error(`Server responded with ${response.status}: ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Message sent successfully:', data);
+                console.log('Message sent successfully, response data:', data);
                 
                 // Create message element
                 const messageDiv = document.createElement('div');
@@ -160,16 +222,22 @@
             })
             .catch(error => {
                 console.error('Error sending message:', error);
-                alert('Error sending message. Please try again.');
+                alert('Error sending message: ' + error.message);
             });
         }
         
         // Handle button click
-        sendButton.addEventListener('click', sendMessage);
+        console.log('Adding click event listener to send button');
+        sendButton.addEventListener('click', function(e) {
+            console.log('Send button clicked');
+            sendMessage();
+        });
         
         // Handle enter key in input
+        console.log('Adding keypress event listener to message input');
         messageInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                console.log('Enter key pressed in message input');
                 e.preventDefault();
                 sendMessage();
             }

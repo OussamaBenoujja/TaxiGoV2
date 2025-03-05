@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Auth\GoogleController;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,12 +44,19 @@ Route::post('/bookings/{bookingId}/update-status', [BookingController::class, 'u
 
 
     use App\Http\Controllers\MessageController;
-
-    
+    Broadcast::routes();
+Broadcast::routes(['middleware' => ['web', 'auth']]);
 Route::middleware(['auth'])->group(function () {
         Route::get('/bookings/{bookingId}/chat', [MessageController::class, 'index'])->name('bookings.chat');
         Route::post('/bookings/{bookingId}/messages', [MessageController::class, 'store'])->name('messages.store');
         Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
     });
+// Add this to routes/web.php (temporarily for testing)
+Route::get('/test-auth', function () {
+    return [
+        'auth_route' => '/broadcasting/auth',
+        'route_exists' => true
+    ];
+});
 
 require __DIR__.'/auth.php';
