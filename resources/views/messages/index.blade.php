@@ -1,5 +1,26 @@
 @extends('layouts.theme')
-
+@section('additional_scripts')
+<script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+<script>
+    // Direct Pusher connection (bypassing Laravel Echo for testing)
+    const pusher = new Pusher('{{ env("PUSHER_APP_KEY") }}', {
+        cluster: '{{ env("PUSHER_APP_CLUSTER") }}',
+        encrypted: true
+    });
+    
+    console.log('Direct Pusher connection established');
+    
+    const channel = pusher.subscribe('private-chat.{{ $booking->id }}');
+    channel.bind('pusher:subscription_succeeded', () => {
+        console.log('Successfully subscribed to private-chat.{{ $booking->id }}');
+    });
+    
+    channel.bind('NewMessage', function(data) {
+        console.log('Direct Pusher event received:', data);
+        // Handle message display here
+    });
+</script>
+@endsection
 @section('content')
 <div class="bg-gray-950 py-6">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,6 +84,8 @@
         </div>
     </div>
 </div>
+@extends('layouts.theme')
+
 
 @push('scripts')
 <script>
@@ -71,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-message-btn');
     const chatMessages = document.getElementById('chat-messages');
-    
+
     // Scroll to bottom of chat
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -228,6 +251,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+if (window.Echo) {
+    try {
+        console.log('Setting up Echo listener for channel: chat.{{ $booking->id }}');
+        
+        window.Echo.private(`chat.{{ $booking->id }}`)
+            .subscribed(() => {
+                console.log('Successfully subscribed to channel!');
+            })
+            .error((err) => {
+                console.error('Failed to subscribe to channel:', err);
+            })
+            .listen('NewMessage', (e) => {
+                console.log('NewMessage event received:', e);
+                // Rest of your event handling code
+            });
+    } catch (error) {
+        console.error('Error setting up Echo:', error);
+    }
+} else {
+    console.error('Echo is not available. Real-time messaging will not work.');
+}
 </script>
 @endpush
 

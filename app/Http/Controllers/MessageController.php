@@ -117,7 +117,7 @@ class MessageController extends Controller
                 ];
                 
                 // Trigger on private channel
-                $pusher->trigger('private-' . $channel, $eventName, $data);
+                $pusher->trigger($channel, $eventName, $data);
                 error_log('Message broadcasted successfully');
                 
                 // Add verification that broadcast service is configured
@@ -127,7 +127,8 @@ class MessageController extends Controller
                 if ($broadcastDriver === 'pusher') {
                     $pusherConfig = config('broadcasting.connections.pusher');
                     error_log('Pusher app ID configured: ' . ($pusherConfig['app_id'] ? 'Yes' : 'No'));
-                    error_log('Pusher configured with encryption: ' . ($pusherConfig['encrypted'] ? 'Yes' : 'No'));
+                    error_log('Pusher configured with encryption: ' . 
+                        (isset($pusherConfig['options']['encrypted']) && $pusherConfig['options']['encrypted'] ? 'Yes' : 'No'));
                 }
             } catch (\Exception $e) {
                 error_log('Broadcast error: ' . $e->getMessage());

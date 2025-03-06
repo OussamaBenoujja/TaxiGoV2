@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <title>{{ config('app.name', 'TaxiApp') }}</title>
-    
+    <script src="{{ asset('js/app.js') }}" defer></script>
     <!-- Scripts and Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -16,4 +16,5 @@
     
     @stack('scripts')
 </body>
+<script src="{{ asset('js/app.js') }}" defer></script>
 </html>
