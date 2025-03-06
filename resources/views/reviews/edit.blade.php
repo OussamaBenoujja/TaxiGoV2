@@ -1,0 +1,141 @@
+@extends('layouts.theme')
+
+@section('content')
+<div class="bg-gray-950 py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Edit Your Review</h1>
+                <p class="mt-2 text-gray-400">Update your review for {{ $reviewee->name }}</p>
+            </div>
+            
+            <div class="mt-4 md:mt-0">
+                <a href="{{ url()->previous() }}" class="btn-secondary flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-xl font-semibold text-white">Booking Details</h2>
+            </div>
+            
+            <div class="p-6 border-b border-gray-800">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-400">Pickup Time</p>
+                        <p class="text-white">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('M d, Y h:i A') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">From</p>
+                        <p class="text-white">{{ $booking->pickup_place }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">To</p>
+                        <p class="text-white">{{ $booking->destination }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Status</p>
+                        <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold 
+                            bg-green-500 bg-opacity-20 text-green-400">
+                            {{ ucfirst($booking->status) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <form method="POST" action="{{ route('reviews.update', $review->id) }}">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="mb-6">
+                        <label class="form-label mb-2">Rating</label>
+                        <div class="rating-select flex items-center space-x-1">
+                            <input type="hidden" name="rating" id="rating" value="{{ $review->rating }}">
+                            @for ($i = 1; $i <= 10; $i++)
+                                <div class="star-half cursor-pointer text-xl {{ ($i * 0.5) <= $review->rating ? 'text-yellow-500' : 'text-gray-400' }} hover:text-yellow-500" 
+                                     data-value="{{ $i * 0.5 }}">
+                                    @if ($i % 2 == 0)
+                                        <i class="fas fa-star"></i>
+                                    @else
+                                        <i class="fas fa-star-half-alt"></i>
+                                    @endif
+                                </div>
+                            @endfor
+                        </div>
+                        @error('rating')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="comment" class="form-label">Your Review</label>
+                        <textarea id="comment" name="comment" rows="4" class="form-input resize-none" 
+                                  placeholder="Share your experience...">{{ old('comment', $review->comment) }}</textarea>
+                        @error('comment')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <form method="POST" action="{{ route('reviews.destroy', $review->id) }}" id="delete-form">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" onclick="confirmDelete()" class="btn-danger">
+                                <i class="fas fa-trash-alt mr-2"></i>
+                                Delete Review
+                            </button>
+                        </form>
+                        
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save mr-2"></i>
+                            Update Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ratingInput = document.getElementById('rating');
+        const stars = document.querySelectorAll('.star-half');
+        
+        // Handle star click events
+        function setRating(rating) {
+            ratingInput.value = rating;
+            
+            stars.forEach(star => {
+                const starValue = parseFloat(star.getAttribute('data-value'));
+                if (starValue <= rating) {
+                    star.classList.add('text-yellow-500');
+                    star.classList.remove('text-gray-400');
+                } else {
+                    star.classList.add('text-gray-400');
+                    star.classList.remove('text-yellow-500');
+                }
+            });
+        }
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = parseFloat(this.getAttribute('data-value'));
+                setRating(value);
+            });
+        });
+    });
+    
+    function confirmDelete() {
+        if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+            document.getElementById('delete-form').submit();
+        }
+    }
+</script>
+@endpush
+@endsection

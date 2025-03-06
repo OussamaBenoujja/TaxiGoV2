@@ -49,12 +49,41 @@ class User extends Authenticatable
     }
 
     public function driverProfile()
-{
-    return $this->hasOne(DriverProfile::class);
-}
+    {
+        return $this->hasOne(DriverProfile::class);
+    }
 
-public function bookings()
-{
-    return $this->hasMany(Booking::class, 'driver_id');
-}
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'driver_id');
+    }
+    
+    public function clientBookings()
+    {
+        return $this->hasMany(Booking::class, 'client_id');
+    }
+    
+    // Reviews given by this user
+    public function givenReviews()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+    
+    // Reviews received by this user
+    public function receivedReviews()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
+    
+    // Calculate average rating for this user
+    public function getAverageRatingAttribute()
+    {
+        return $this->receivedReviews()->avg('rating') ?? 0;
+    }
+    
+    // Count the number of reviews received
+    public function getReviewsCountAttribute()
+    {
+        return $this->receivedReviews()->count();
+    }
 }

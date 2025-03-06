@@ -71,7 +71,7 @@
                                     <div class="bg-yellow-500 p-2 rounded-full mr-2">
                                         <i class="fas fa-taxi text-black text-xl"></i>
                                     </div>
-                                    <span class="text-xl font-bold text-white">TaxiApp</span>
+                                    <span class="text-xl font-bold text-white">TaxiGo</span>
                                 </a>
                             </div>
                             

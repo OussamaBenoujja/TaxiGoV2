@@ -31,7 +31,11 @@
                                     <i class="fas fa-user-alt"></i>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-white">{{ $booking->driver->name }}</p>
+                                    <p class="font-medium text-white">
+                                        <a href="{{ route('profiles.public', $booking->driver->id) }}" class="hover:text-yellow-500">
+                                            {{ $booking->driver->name }}
+                                        </a>
+                                    </p>
                                     <p class="text-sm text-gray-400">{{ $booking->driver->driverProfile->car_model ?? 'No car info' }}</p>
                                 </div>
                             </div>
@@ -61,6 +65,20 @@
                                         <a href="{{ route('bookings.chat', $booking->id) }}" class="flex items-center text-sm font-medium text-yellow-500 hover:text-yellow-400">
                                             <i class="fas fa-comments mr-1"></i>
                                             Chat
+                                        </a>
+                                    @endif
+                                    
+                                    @if($booking->status == 'confirmed' && !$booking->hasBeenReviewedBy(Auth::id()))
+                                        <a href="{{ route('reviews.create', $booking->id) }}" class="flex items-center text-sm font-medium text-green-500 hover:text-green-400">
+                                            <i class="fas fa-star mr-1"></i>
+                                            Review
+                                        </a>
+                                    @endif
+                                    
+                                    @if($booking->status == 'confirmed' && $booking->hasBeenReviewedBy(Auth::id()))
+                                        <a href="{{ route('reviews.edit', $booking->getReviewBy(Auth::id())->id) }}" class="flex items-center text-sm font-medium text-blue-500 hover:text-blue-400">
+                                            <i class="fas fa-edit mr-1"></i>
+                                            Edit Review
                                         </a>
                                     @endif
                                     
@@ -94,12 +112,12 @@
                 @endforelse
                 
                 @if($bookings->count() > 0)
-                @if($bookings->hasPages())
-                    <div class="p-4 border-t border-gray-800">
-                        {{ $bookings->links() }}
-                    </div>
+                    @if($bookings->hasPages())
+                        <div class="p-4 border-t border-gray-800">
+                            {{ $bookings->links() }}
+                        </div>
+                    @endif
                 @endif
-            @endif
             </div>
         </div>
     </div>

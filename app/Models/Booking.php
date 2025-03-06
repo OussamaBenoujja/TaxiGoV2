@@ -34,6 +34,12 @@ class Booking extends Model
         return $this->hasMany(Message::class);
     }
     
+    // Add relationship for reviews
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+    
     // Helper method to check if a booking is paid
     public function isPaid()
     {
@@ -44,5 +50,23 @@ class Booking extends Model
     public function isPendingPayment()
     {
         return $this->status === 'confirmed' && $this->payment_status === 'unpaid';
+    }
+    
+    // Check if the booking can be reviewed
+    public function canBeReviewed()
+    {
+        return $this->status === 'confirmed';
+    }
+    
+    // Check if a specific user has already reviewed this booking
+    public function hasBeenReviewedBy($userId)
+    {
+        return $this->reviews()->where('reviewer_id', $userId)->exists();
+    }
+    
+    // Get the review by a specific user for this booking
+    public function getReviewBy($userId)
+    {
+        return $this->reviews()->where('reviewer_id', $userId)->first();
     }
 }

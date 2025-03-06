@@ -104,7 +104,7 @@ class MessageController extends Controller
                     ]
                 );
                 
-                // Trigger the event manually
+                
                 $event = new NewMessage($message);
                 $channel = 'chat.' . $message->booking_id;
                 $eventName = 'NewMessage';
@@ -116,11 +116,11 @@ class MessageController extends Controller
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
                 ];
                 
-                // Trigger on private channel
+                
                 $pusher->trigger($channel, $eventName, $data);
                 error_log('Message broadcasted successfully');
                 
-                // Add verification that broadcast service is configured
+               
                 $broadcastDriver = config('broadcasting.default');
                 error_log('Broadcast driver: ' . $broadcastDriver);
                 

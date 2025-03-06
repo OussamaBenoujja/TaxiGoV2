@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.theme')
 
 @section('content')
 <div class="bg-gray-50 min-h-screen py-8">
@@ -52,6 +52,9 @@
                 @endif
                 <button id="settings-tab" onclick="showTab('settings')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none">
                     Account Settings
+                </button>
+                <button id="reviews-tab" onclick="showTab('reviews')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none">
+                    Reviews
                 </button>
             </div>
 
@@ -141,7 +144,11 @@
                                                         @endif
                                                     </div>
                                                     <div class="ml-4">
-                                                        <div class="text-sm font-medium text-gray-900">{{ $booking->driver->name }}</div>
+                                                        <div class="text-sm font-medium text-gray-900">
+                                                            <a href="{{ route('profiles.public', $booking->driver->id) }}" class="text-blue-600 hover:text-blue-900">
+                                                                {{ $booking->driver->name }}
+                                                            </a>
+                                                        </div>
                                                         <div class="text-sm text-gray-500">
                                                             @if($booking->driver->driverProfile)
                                                                 {{ $booking->driver->driverProfile->car_model }}
@@ -332,7 +339,11 @@
                                     @foreach(Auth::user()->bookings as $booking)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900">{{ $booking->client->name }}</div>
+                                                <div class="text-sm text-gray-900">
+                                                    <a href="{{ route('profiles.public', $booking->client->id) }}" class="text-blue-600 hover:text-blue-900">
+                                                        {{ $booking->client->name }}
+                                                    </a>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('M d, Y') }}</div>
@@ -484,6 +495,137 @@
                             </button>
                         </form>
                     </div>
+                </div>
+            </div>
+
+            <div id="reviews" class="tab-content p-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Reviews</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h4 class="font-medium text-gray-800 mb-3">Reviews Received</h4>
+                        <div class="flex items-center">
+                            <div class="mr-3">
+                                <div class="text-3xl font-bold text-gray-800">{{ number_format(Auth::user()->average_rating, 1) }}</div>
+                                <div class="flex text-yellow-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        @if ($i <= floor(Auth::user()->average_rating))
+                                            <i class="fas fa-star"></i>
+                                        @elseif ($i - 0.5 <= Auth::user()->average_rating)
+                                            <i class="fas fa-star-half-alt"></i>
+                                        @else
+                                            <i class="far fa-star"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                            </div>
+                            <div class="text-gray-500">
+                                {{ Auth::user()->reviews_count }} {{ Str::plural('review', Auth::user()->reviews_count) }}
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <a href="{{ route('reviews.user', Auth::id()) }}" class="text-blue-600 hover:text-blue-800 flex items-center">
+                                <span>View all reviews</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h4 class="font-medium text-gray-800 mb-3">Reviews Given</h4>
+                        <div class="text-gray-600">
+                            You have written {{ Auth::user()->givenReviews()->count() }} {{ Str::plural('review', Auth::user()->givenReviews()->count()) }}.
+                        </div>
+                        <div class="mt-4">
+                            @php
+                                $latestReview = Auth::user()->givenReviews()->with('reviewee')->latest()->first();
+                            @endphp
+                            
+                            @if($latestReview)
+                                <div class="text-sm text-gray-600">
+                                    Latest review for:
+                                    <div class="font-medium text-gray-800">{{ $latestReview->reviewee->name }}</div>
+                                    <div class="flex text-yellow-500 mt-1">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            @if ($i <= floor($latestReview->rating))
+                                                <i class="fas fa-star"></i>
+                                            @elseif ($i - 0.5 <= $latestReview->rating)
+                                                <i class="fas fa-star-half-alt"></i>
+                                            @else
+                                                <i class="far fa-star"></i>
+                                            @endif
+                                        @endfor
+                                        <span class="ml-1 text-gray-600">{{ $latestReview->created_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="text-gray-500 italic">You haven't written any reviews yet.</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Reviews Section -->
+                <h4 class="font-medium text-gray-800 mb-3">Recent Reviews Received</h4>
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="divide-y divide-gray-200">
+                        @php
+                            $recentReviews = Auth::user()->receivedReviews()->with('reviewer')->latest()->take(5)->get();
+                        @endphp
+                        
+                        @forelse($recentReviews as $review)
+                            <div class="p-4 hover:bg-gray-50">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <span class="font-medium text-blue-800">{{ substr($review->reviewer->name, 0, 1) }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <h5 class="text-sm font-medium text-gray-900">{{ $review->reviewer->name }}</h5>
+                                                <div class="flex items-center mt-1">
+                                                    <div class="flex text-yellow-500">
+                                                        @for ($i = 1; $i <= 5; $i++)
+                                                            @if ($i <= floor($review->rating))
+                                                                <i class="fas fa-star"></i>
+                                                            @elseif ($i - 0.5 <= $review->rating)
+                                                                <i class="fas fa-star-half-alt"></i>
+                                                            @else
+                                                                <i class="far fa-star"></i>
+                                                            @endif
+                                                        @endfor
+                                                    </div>
+                                                    <span class="ml-1 text-xs text-gray-500">{{ $review->created_at->diffForHumans() }}</span>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs text-gray-500">
+                                                Booking #{{ $review->booking_id }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-2 text-sm text-gray-700">
+                                            {{ $review->comment }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="p-4 text-center text-gray-500">
+                                You haven't received any reviews yet.
+                            </div>
+                        @endforelse
+                    </div>
+                    
+                    @if(Auth::user()->reviews_count > 5)
+                        <div class="px-4 py-3 bg-gray-50 text-right">
+                            <a href="{{ route('reviews.user', Auth::id()) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                View all {{ Auth::user()->reviews_count }} reviews
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
