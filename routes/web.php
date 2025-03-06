@@ -109,7 +109,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('reviews.destroy');
     Route::get('/users/{userId}/reviews', [App\Http\Controllers\ReviewController::class, 'showUserReviews'])
         ->name('reviews.user');
-        
+
 });
 
 
@@ -118,6 +118,11 @@ Route::get('/profiles/{userId}', [App\Http\Controllers\PublicProfileController::
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile/qr-code', [App\Http\Controllers\QRCodeController::class, 'showProfileQR'])
+        ->name('profile.qr-code');
+    Route::get('/profile/qr-code/{userId}', [App\Http\Controllers\QRCodeController::class, 'showProfileQR'])
+        ->name('profile.qr-code.user');
+});
 
 require __DIR__.'/auth.php';
