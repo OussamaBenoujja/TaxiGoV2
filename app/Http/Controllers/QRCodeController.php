@@ -1,11 +1,16 @@
 <?php
-use Endroid\QrCode\Builder\Builder;
+
+namespace App\Http\Controllers;
+
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use Illuminate\Routing\Controller;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Endroid\QrCode\Color\Color;
 
 class QRCodeController extends Controller
 {
@@ -19,36 +24,35 @@ class QRCodeController extends Controller
     {
         // If no userId provided, use authenticated user
         if (!$userId) {
-            $userId = Auth::id();
+            $user = Auth::user();
+        } else {
+            $user = User::findOrFail($userId);
         }
 
-        $user = User::findOrFail($userId);
+       
+        // Generate QR code content (e.g., profile URL)
+        $qrCodeContent = $user->profile_url ?? route('/profile/qr-code', $user->id);
 
-        // Only allow viewing QR if it's the user's own profile or if the profile is public
-        if (Auth::id() !== $user->id) {
-            return redirect()->route('profiles.public', $user->id);
-        }
+        // Create QR code
+        $qrCode = QrCode::create($qrCodeContent)
+            ->setEncoding(new Encoding('UTF-8'))
+            ->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh())
+            ->setSize(300)
+            ->setMargin(10)
+            ->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
+            ->setForegroundColor(new Color(0, 0, 0))
+            ->setBackgroundColor(new Color(255, 255, 255));
 
-        // Generate profile URL
-        $profileUrl = route('profiles.public', $user->id);
+        // Write QR code
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
 
-        // Build QR code using the new Builder instance (version 6.0)
-        $result = (new Builder())
-            ->writer(new PngWriter())
-            ->data($profileUrl)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-            ->size(300)
-            ->margin(10)
-            ->build();
-
-        // Convert to base64 for embedding if needed
-        $qrCodeBase64 = base64_encode($result->getString());
+        // Convert to base64 for easy embedding
+        $qrCodeImage = base64_encode($result->getString());
 
         return view('profile.qr-code', [
-            'user' => $user,
-            'profileUrl' => $profileUrl,
-            'qrCode' => $qrCodeBase64,
+            'qrCodeImage' => $qrCodeImage,
+            'user' => $user
         ]);
     }
 }

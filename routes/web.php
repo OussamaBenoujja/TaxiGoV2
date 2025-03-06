@@ -124,5 +124,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/qr-code/{userId}', [App\Http\Controllers\QRCodeController::class, 'showProfileQR'])
         ->name('profile.qr-code.user');
 });
-
 require __DIR__.'/auth.php';

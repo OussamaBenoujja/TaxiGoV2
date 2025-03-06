@@ -37,26 +37,27 @@
         <!-- Tab Navigation -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
             <div class="flex border-b">
-                <button id="personal-tab" onclick="showTab('personal')" class="tab-btn active px-6 py-3 font-medium text-sm focus:outline-none">
+                <button id="personal-tab" onclick="showTab('personal')" class="tab-btn active px-6 py-3 font-medium text-sm focus:outline-none bg-white text-black">
                     Personal Information
                 </button>
                 @if(Auth::user()->role == 'client')
-                    <button id="bookings-tab" onclick="showTab('bookings')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none">
+                    <button id="bookings-tab" onclick="showTab('bookings')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none bg-white text-black">
                         My Bookings
                     </button>
                 @endif
                 @if(Auth::user()->role == 'driver')
-                    <button id="driver-tab" onclick="showTab('driver')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none">
+                    <button id="driver-tab" onclick="showTab('driver')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none bg-white text-black">
                         Driver Details
                     </button>
                 @endif
-                <button id="settings-tab" onclick="showTab('settings')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none">
+                <button id="settings-tab" onclick="showTab('settings')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none bg-white text-black">
                     Account Settings
                 </button>
-                <button id="reviews-tab" onclick="showTab('reviews')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none">
+                <button id="reviews-tab" onclick="showTab('reviews')" class="tab-btn px-6 py-3 font-medium text-sm focus:outline-none bg-white text-black">
                     Reviews
                 </button>
             </div>
+            
 
             <!-- Personal Info Tab -->
             <div id="personal" class="tab-content p-6 block">
