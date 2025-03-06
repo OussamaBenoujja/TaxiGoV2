@@ -1,11 +1,11 @@
 <?php
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Routing\Controller;
 
 class QRCodeController extends Controller
 {
@@ -32,17 +32,23 @@ class QRCodeController extends Controller
         // Generate profile URL
         $profileUrl = route('profiles.public', $user->id);
 
-        // Generate QR code
-        $qrCode = QrCode::create($profileUrl)
-            ->setSize(300)
-            ->setMargin(10);
+        // Build QR code using the new Builder instance (version 6.0)
+        $result = (new Builder())
+            ->writer(new PngWriter())
+            ->data($profileUrl)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
+            ->size(300)
+            ->margin(10)
+            ->build();
 
-        $writer = new PngWriter();
-        $result = $writer->write($qrCode);
+        // Convert to base64 for embedding if needed
+        $qrCodeBase64 = base64_encode($result->getString());
 
-        // Convert to base64
-        $qrCode = base64_encode($result->getString());
-
-        return view('profile.qr-code', compact('user', 'profileUrl', 'qrCode'));
+        return view('profile.qr-code', [
+            'user' => $user,
+            'profileUrl' => $profileUrl,
+            'qrCode' => $qrCodeBase64,
+        ]);
     }
 }
