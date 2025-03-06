@@ -82,56 +82,42 @@ Route::get('/test-auth', function () {
 
 // Payment routes
 Route::middleware(['auth'])->group(function () {
-    // Show payment form
+    
     Route::get('/bookings/{booking}/payment', [App\Http\Controllers\PaymentController::class, 'showPaymentForm'])
         ->name('bookings.payment.form');
-    
-    // Create payment intent
     Route::post('/bookings/{booking}/payment/intent', [App\Http\Controllers\PaymentController::class, 'createPaymentIntent'])
-        ->name('bookings.payment.intent');
-    
-    // Mark payment as complete
+        ->name('bookings.payment.intent');   
     Route::post('/bookings/{booking}/payment/complete', [App\Http\Controllers\PaymentController::class, 'markPaymentComplete'])
         ->name('bookings.payment.complete');
 });
 
-// Stripe webhook
+
 Route::post('/stripe/webhook', [App\Http\Controllers\PaymentController::class, 'handleWebhook'])
     ->name('stripe.webhook');
 
-
-
-// Add these routes to your routes/web.php file, inside the auth middleware group
-
-// Review routes
 Route::middleware(['auth'])->group(function () {
-    // Create a review for a booking
+    
     Route::get('/bookings/{bookingId}/review', [App\Http\Controllers\ReviewController::class, 'create'])
         ->name('reviews.create');
-    
-    // Store a new review
     Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])
         ->name('reviews.store');
-    
-    // Edit a review
     Route::get('/reviews/{id}/edit', [App\Http\Controllers\ReviewController::class, 'edit'])
         ->name('reviews.edit');
-    
-    // Update a review
     Route::put('/reviews/{id}', [App\Http\Controllers\ReviewController::class, 'update'])
         ->name('reviews.update');
-    
-    // Delete a review
     Route::delete('/reviews/{id}', [App\Http\Controllers\ReviewController::class, 'destroy'])
         ->name('reviews.destroy');
-    
-    // View all reviews for a user
     Route::get('/users/{userId}/reviews', [App\Http\Controllers\ReviewController::class, 'showUserReviews'])
         ->name('reviews.user');
+        
 });
 
-// Public profile routes
+
 Route::get('/profiles/{userId}', [App\Http\Controllers\PublicProfileController::class, 'show'])
     ->name('profiles.public');
+
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
 
 require __DIR__.'/auth.php';

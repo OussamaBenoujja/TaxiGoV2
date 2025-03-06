@@ -72,7 +72,7 @@
                         </label>
                         <div class="relative">
                             <select name="driver_id" id="driver_id" required class="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 appearance-none transition-colors duration-200">
-                                <option value="" selected disabled>Select a driver</option>
+                                <option value="" disabled {{ !isset($selectedDriverId) ? 'selected' : '' }}>Select a driver</option>
                                 @foreach($drivers as $driver)
                                     <option 
                                         value="{{ $driver->id }}"
@@ -80,6 +80,7 @@
                                         data-work_days="{{ json_encode($driver->driverProfile->work_days ?? []) }}"
                                         data-work_start="{{ $driver->driverProfile->work_start ?? 'N/A' }}"
                                         data-work_end="{{ $driver->driverProfile->work_end ?? 'N/A' }}"
+                                        {{ isset($selectedDriverId) && $selectedDriverId == $driver->id ? 'selected' : '' }}
                                     >
                                         {{ $driver->name }} - {{ $driver->driverProfile->car_model ?? 'No car info' }}
                                     </option>

@@ -53,19 +53,23 @@ class GoogleController extends Controller
             }
             
             Auth::login($user);
-    
-            return redirect()->route('dashboard');
-            
             
             session()->regenerate();
             
-           
+            // Check if there's a redirect with driver_id in the session
+            if (session()->has('redirect_to_booking') && session()->has('driver_id')) {
+                $driverId = session()->get('driver_id');
+                session()->forget(['redirect_to_booking', 'driver_id']);
+                return redirect()->route('booking.create', ['driver_id' => $driverId]);
+            }
+            
             if (Auth::check()) {
                 return redirect('/dashboard');
             } else {
-                
                 return redirect('/login')->withErrors('Authentication failed after Google login');
             }
+    
+            
         }catch (Exception $e) {
             
             error_log('GOOGLE AUTH ERROR: ' . $e->getMessage());

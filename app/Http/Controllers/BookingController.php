@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
         $drivers = \App\Models\User::where('role', 'driver')->with('driverProfile')->get();
-        return view('booking.create', compact('drivers'));
+        $selectedDriverId = $request->query('driver_id');
+        return view('booking.create', compact('drivers', 'selectedDriverId'));
     }
     
     public function store(Request $request)
