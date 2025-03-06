@@ -93,11 +93,13 @@
                     </div>
                 @endforelse
                 
-                @if($bookings->count() > 0 && $bookings->hasPages())
+                @if($bookings->count() > 0)
+                @if($bookings->hasPages())
                     <div class="p-4 border-t border-gray-800">
                         {{ $bookings->links() }}
                     </div>
                 @endif
+            @endif
             </div>
         </div>
     </div>

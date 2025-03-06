@@ -13,7 +13,10 @@ class Booking extends Model
         'pickup_time', 
         'pickup_place',
         'destination',
-        'status'
+        'status',
+        'payment_status',
+        'payment_intent_id',
+        'amount'
     ];
     
     public function client()
@@ -26,10 +29,20 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'driver_id');
     }
    
-
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
     }
-
+    
+    // Helper method to check if a booking is paid
+    public function isPaid()
+    {
+        return $this->payment_status === 'paid';
+    }
+    
+    // Helper method to check if a booking is pending payment
+    public function isPendingPayment()
+    {
+        return $this->status === 'confirmed' && $this->payment_status === 'unpaid';
+    }
 }

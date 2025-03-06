@@ -10,10 +10,9 @@ window.Pusher = Pusher;
 
 window.Echo = new Echo({
     broadcaster: 'pusher',
-    key: '4cb653de810be070150e',
-    cluster: 'eu',
-    forceTLS: true,
-    
+    key: process.env.MIX_PUSHER_APP_KEY,
+    cluster: process.env.MIX_PUSHER_APP_CLUSTER,
+    forceTLS: true
 });
 
 // Add extensive logging

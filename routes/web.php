@@ -80,5 +80,24 @@ Route::get('/test-auth', function () {
     ];
 });
 
+// Payment routes
+Route::middleware(['auth'])->group(function () {
+    // Show payment form
+    Route::get('/bookings/{booking}/payment', [App\Http\Controllers\PaymentController::class, 'showPaymentForm'])
+        ->name('bookings.payment.form');
+    
+    // Create payment intent
+    Route::post('/bookings/{booking}/payment/intent', [App\Http\Controllers\PaymentController::class, 'createPaymentIntent'])
+        ->name('bookings.payment.intent');
+    
+    // Mark payment as complete
+    Route::post('/bookings/{booking}/payment/complete', [App\Http\Controllers\PaymentController::class, 'markPaymentComplete'])
+        ->name('bookings.payment.complete');
+});
+
+// Stripe webhook
+Route::post('/stripe/webhook', [App\Http\Controllers\PaymentController::class, 'handleWebhook'])
+    ->name('stripe.webhook');
+
 
 require __DIR__.'/auth.php';

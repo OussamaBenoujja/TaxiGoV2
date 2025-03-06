@@ -87,7 +87,11 @@ class BookingController extends Controller
     
     public function index()
     {
-        $bookings = Booking::where('client_id', Auth::id())->with('driver')->get();
+        $bookings = Booking::where('client_id', Auth::id())
+                          ->with('driver')
+                          ->orderBy('created_at', 'desc')
+                          ->paginate(10); // Add pagination with 10 items per page
+                          
         return view('booking.index', compact('bookings'));
     }
 

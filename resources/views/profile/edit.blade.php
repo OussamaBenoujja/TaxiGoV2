@@ -109,31 +109,36 @@
 
             <!-- Bookings Tab (For Clients) -->
             @if(Auth::user()->role == 'client')
-    <div id="bookings" class="tab-content p-6 hidden">
-        <h3 class="text-lg font-semibold text-gray-700 mb-4">Your Taxi Bookings</h3>
-        
-        @if(count($bookings) > 0)
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($bookings as $booking)
-                            <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                <div id="bookings" class="tab-content p-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Your Taxi Bookings</h3>
+                    
+                    @if(count($bookings) > 0)
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Time</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($bookings as $booking)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="flex items-center">
                                                     <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
+                                                        @if($booking->driver->driverProfile && $booking->driver->driverProfile->profile_picture)
+                                                            <img src="{{ Storage::url($booking->driver->driverProfile->profile_picture) }}" alt="{{ $booking->driver->name }}" class="h-10 w-10 rounded-full object-cover">
+                                                        @else
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                            </svg>
+                                                        @endif
                                                     </div>
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">{{ $booking->driver->name }}</div>
@@ -164,43 +169,53 @@
                                                     {{ ucfirst($booking->status) }}
                                                 </span>
                                             </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        @if($booking->status == 'pending') bg-yellow-100 text-yellow-800
-                                        @elseif($booking->status == 'confirmed') bg-green-100 text-green-800
-                                        @elseif($booking->status == 'cancelled') bg-red-100 text-red-800
-                                        @endif">
-                                        {{ ucfirst($booking->status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($booking->status == 'pending')
-                                        <form method="POST" action="{{ route('bookings.update-status', $booking->id) }}" class="inline-block">
-                                            @csrf
-                                            <button type="submit" name="status" value="cancelled" 
-                                                class="text-red-600 hover:text-red-900 text-sm mr-2"
-                                                onclick="return confirm('Are you sure you want to cancel this booking?')">
-                                                Cancel
-                                            </button>
-                                        </form>
-                                    @endif
-                                    
-                                    @if($booking->status == 'confirmed')
-                                        <a href="{{ route('bookings.chat', $booking->id) }}" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            Chat
-                                        </a>
-                                    @endif
-                                </td>
-                                
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @else
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    @if(isset($booking->payment_status) && $booking->payment_status == 'paid') bg-green-100 text-green-800
+                                                    @elseif(isset($booking->payment_status) && $booking->payment_status == 'failed') bg-red-100 text-red-800
+                                                    @else bg-yellow-100 text-yellow-800
+                                                    @endif">
+                                                    {{ isset($booking->payment_status) ? ucfirst($booking->payment_status) : 'Unpaid' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div class="flex space-x-2">
+                                                    @if($booking->status == 'pending')
+                                                        <form method="POST" action="{{ route('bookings.update-status', $booking->id) }}" class="inline-block">
+                                                            @csrf
+                                                            <button type="submit" name="status" value="cancelled" 
+                                                                class="text-red-600 hover:text-red-900"
+                                                                onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                                                Cancel
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    
+                                                    @if($booking->status == 'confirmed')
+                                                        <a href="{{ route('bookings.chat', $booking->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-900">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                            </svg>
+                                                            Chat
+                                                        </a>
+                                                        
+                                                        @if(!isset($booking->payment_status) || $booking->payment_status != 'paid')
+                                                            <a href="{{ route('bookings.payment.form', $booking->id) }}" class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-md text-xs ml-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                                                </svg>
+                                                                Pay Now
+                                                            </a>
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
                         <div class="bg-gray-50 p-6 rounded-lg text-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -296,89 +311,99 @@
                             </div>
                         </div>
                     </div>
+                    
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 mt-6">Your Upcoming Bookings</h3>
-        
-        @if(Auth::user()->bookings && Auth::user()->bookings->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach(Auth::user()->bookings as $booking)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $booking->client->name }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('M d, Y') }}</div>
-                                    <div class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('h:i A') }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $booking->pickup_place }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $booking->destination }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        @if($booking->status == 'pending') bg-yellow-100 text-yellow-800
-                                        @elseif($booking->status == 'confirmed') bg-green-100 text-green-800
-                                        @elseif($booking->status == 'cancelled') bg-red-100 text-red-800
-                                        @endif">
-                                        {{ ucfirst($booking->status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($booking->status == 'pending')
-                                        <div class="flex space-x-2">
-                                            <form method="POST" action="{{ route('bookings.update-status', $booking->id) }}" class="inline-block">
-                                                @csrf
-                                                <button type="submit" name="status" value="confirmed" 
-                                                    class="text-green-600 hover:text-green-900 text-sm mr-2"
-                                                    onclick="return confirm('Are you sure you want to confirm this booking?')">
-                                                    Confirm
-                                                </button>
-                                            </form>
-                                            <form method="POST" action="{{ route('bookings.update-status', $booking->id) }}" class="inline-block">
-                                                @csrf
-                                                <button type="submit" name="status" value="cancelled" 
-                                                    class="text-red-600 hover:text-red-900 text-sm"
-                                                    onclick="return confirm('Are you sure you want to cancel this booking?')">
-                                                    Cancel
-                                                </button>
-                                            </form>
-                                        </div>
-                                    @endif
-                                    
-                                    @if($booking->status == 'confirmed')
-                                        <a href="{{ route('bookings.chat', $booking->id) }}" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            Chat
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @else
-            <div class="bg-gray-50 p-6 rounded-lg text-center">
-                <p class="text-gray-600">You don't have any bookings yet.</p>
-            </div>
-        @endif
-    </div>
-@endif
+                    
+                    @if(Auth::user()->bookings && Auth::user()->bookings->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Time</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Location</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach(Auth::user()->bookings as $booking)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ $booking->client->name }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('M d, Y') }}</div>
+                                                <div class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($booking->pickup_time)->format('h:i A') }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ $booking->pickup_place }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ $booking->destination }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    @if($booking->status == 'pending') bg-yellow-100 text-yellow-800
+                                                    @elseif($booking->status == 'confirmed') bg-green-100 text-green-800
+                                                    @elseif($booking->status == 'cancelled') bg-red-100 text-red-800
+                                                    @endif">
+                                                    {{ ucfirst($booking->status) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    @if(isset($booking->payment_status) && $booking->payment_status == 'paid') bg-green-100 text-green-800
+                                                    @elseif(isset($booking->payment_status) && $booking->payment_status == 'failed') bg-red-100 text-red-800
+                                                    @else bg-yellow-100 text-yellow-800
+                                                    @endif">
+                                                    {{ isset($booking->payment_status) ? ucfirst($booking->payment_status) : 'Unpaid' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex space-x-2">
+                                                    @if($booking->status == 'pending')
+                                                        <form method="POST" action="{{ route('bookings.update-status', $booking->id) }}" class="inline-block">
+                                                            @csrf
+                                                            <button type="submit" name="status" value="confirmed" 
+                                                                class="text-green-600 hover:text-green-900 text-sm mr-2" onclick="return confirm('Are you sure you want to confirm this booking?')">
+                                                                Confirm
+                                                            </button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('bookings.update-status', $booking->id) }}" class="inline-block">
+                                                            @csrf
+                                                            <button type="submit" name="status" value="cancelled" 
+                                                                class="text-red-600 hover:text-red-900 text-sm"
+                                                                onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                                                Cancel
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    
+                                                    @if($booking->status == 'confirmed')
+                                                        <a href="{{ route('bookings.chat', $booking->id) }}" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                            </svg>
+                                                            Chat
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="bg-gray-50 p-6 rounded-lg text-center">
+                            <p class="text-gray-600">You don't have any bookings yet.</p>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             <!-- Settings Tab -->
             <div id="settings" class="tab-content p-6 hidden">
@@ -436,6 +461,30 @@
                         </form>
                     </div>
                 </div>
+                
+                <!-- Account Deletion Section -->
+                <div class="mt-10 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-semibold text-red-600 mb-4">Danger Zone</h3>
+                    
+                    <div class="bg-red-50 p-4 rounded-md border border-red-200">
+                        <h4 class="text-md font-medium text-red-800 mb-2">Delete Account</h4>
+                        <p class="text-sm text-red-600 mb-4">Once your account is deleted, all of its resources and data will be permanently deleted.</p>
+                        
+                        <form method="POST" action="{{ route('profile.destroy') }}" class="inline-block" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                            @csrf
+                            @method('delete')
+                            
+                            <div>
+                                <label for="delete_password" class="block text-sm font-medium text-gray-700 mb-2">Enter your password to confirm</label>
+                                <input type="password" name="password" id="delete_password" required class="mb-3 focus:ring-red-500 focus:border-red-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Delete Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -461,7 +510,11 @@ function showTab(tabName) {
 
 // Initialize tabs
 document.addEventListener('DOMContentLoaded', function() {
-    showTab('personal');
+    @if(session('open_bookings'))
+        showTab('bookings');
+    @else
+        showTab('personal');
+    @endif
 });
 </script>
 
