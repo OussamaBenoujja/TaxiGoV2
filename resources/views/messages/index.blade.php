@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Setting up Echo listener for channel: chat.{{ $booking->id }}');
             
-            window.Echo.private(`chat`)
+            window.Echo.private(`chat.{{ $booking->id }}`)
                 .listen('NewMessage', (e) => {
                     
                     console.log('NewMessage event received:', e);

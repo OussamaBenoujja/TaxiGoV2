@@ -93,10 +93,31 @@ class MessageController extends Controller
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
                 ]));
                 
-                if(broadcast(new NewMessage($message))->toOthers()){
-                    error_log('Message broadcasted successfully');
-                }
+                $pusher = new \Pusher\Pusher(
+                    config('broadcasting.connections.pusher.key'),
+                    config('broadcasting.connections.pusher.secret'),
+                    config('broadcasting.connections.pusher.app_id'),
+                    [
+                        'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+                        'useTLS' => true,
+                        'encrypted' => true
+                    ]
+                );
                 
+                // Trigger the event manually
+                $event = new NewMessage($message);
+                $channel = 'chat.' . $message->booking_id;
+                $eventName = 'NewMessage';
+                $data = [
+                    'id' => $message->id,
+                    'sender_id' => $message->sender_id,
+                    'sender_name' => $message->sender->name,
+                    'message' => $message->message,
+                    'created_at' => $message->created_at->format('Y-m-d H:i:s'),
+                ];
+                
+                // Trigger on private channel
+                $pusher->trigger('private-' . $channel, $eventName, $data);
                 error_log('Message broadcasted successfully');
                 
                 // Add verification that broadcast service is configured
