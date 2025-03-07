@@ -8,9 +8,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Booking;
 
-class BookingCancelledNotification extends Notification implements ShouldQueue
+class BookingCancelledNotification extends Notification 
 {
-    use Queueable;
+    
 
     protected $booking;
     protected $cancelledBy;

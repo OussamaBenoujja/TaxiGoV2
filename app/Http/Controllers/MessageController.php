@@ -106,7 +106,7 @@ class MessageController extends Controller
                 
                 
                 $event = new NewMessage($message);
-                $channel = 'chat.' . $message->booking_id;
+                $channel = 'private-chat.' . $message->booking_id;
                 $eventName = 'NewMessage';
                 $data = [
                     'id' => $message->id,

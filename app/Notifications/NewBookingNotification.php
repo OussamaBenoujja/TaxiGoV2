@@ -8,9 +8,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Booking;
 
-class NewBookingNotification extends Notification implements ShouldQueue
+class NewBookingNotification extends Notification 
 {
-    use Queueable;
+    
 
     protected $booking;
 

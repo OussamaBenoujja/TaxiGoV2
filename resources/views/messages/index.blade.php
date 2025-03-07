@@ -1,6 +1,8 @@
 @extends('layouts.theme')
 
 @section('content')
+<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+
 <div class="bg-gray-950 py-6">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="card flex flex-col h-[calc(100vh-12rem)]">
@@ -69,110 +71,80 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded for chat page');
     
-    // First, let's check if Echo is defined globally
-    if (typeof window.Echo === 'undefined') {
-        console.error('❌ Echo is not available! Setting up fallback...');
-        
-        // Setup a fallback Echo instance - should only run if main Echo setup failed
-        try {
-            const pusherKey = '{{ env("PUSHER_APP_KEY") }}';
-            const pusherCluster = '{{ env("PUSHER_APP_CLUSTER") }}';
-            
-            console.log('Setting up fallback Echo with:', { 
-                key: pusherKey, 
-                cluster: pusherCluster 
-            });
-            
-            // Only setup fallback if we have a key
-            if (pusherKey) {
-                window.Echo = new window.Echo({
-                    broadcaster: 'pusher',
-                    key: pusherKey,
-                    cluster: pusherCluster,
-                    forceTLS: true,
-                    authEndpoint: '/broadcasting/auth',
-                    csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                });
-                
-                console.log('✅ Fallback Echo setup complete');
-            } else {
-                console.error('❌ No Pusher key available for fallback Echo');
-            }
-        } catch (e) {
-            console.error('❌ Failed to set up fallback Echo:', e);
-        }
-    } else {
-        console.log('✅ Echo is available globally');
-    }
-    
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-message-btn');
     const chatMessages = document.getElementById('chat-messages');
 
-    // Scroll to bottom of chat
+    
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
     scrollToBottom();
     
-    // Set up Echo listeners
-    console.log('Setting up channel listener for: chat.{{ $booking->id }}');
+
+
     
-    if (window.Echo) {
-        try {
-            const channel = window.Echo.private(`chat.{{ $booking->id }}`);
-            
-            channel.subscribed(() => {
-                console.log('✅ Successfully subscribed to channel: chat.{{ $booking->id }}');
-            }).error((error) => {
-                console.error('❌ Error subscribing to channel:', error);
-            });
-            
-            channel.listen('NewMessage', (e) => {
-                console.log('📨 NewMessage event received:', e);
-                
-                // Skip self-messages (already handled by the UI)
-                if (e.sender_id == {{ Auth::id() }}) {
-                    console.log('Skipping own message');
-                    return;
-                }
-    
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'flex justify-start';
-                
-                let timestamp = '';
-                try {
-                    timestamp = new Date(e.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                } catch (err) {
-                    console.error('Error formatting timestamp:', err);
-                    timestamp = 'just now';
-                }
-                
-                messageDiv.innerHTML = `
-                    <div class="relative max-w-xl px-4 py-2 rounded-lg shadow bg-gray-800 text-white">
-                        <div class="font-medium text-sm">${e.sender_name}</div>
-                        <div class="mt-1">${e.message}</div>
-                        <div class="mt-1 text-xs text-gray-400">
-                            ${timestamp}
-                        </div>
-                    </div>
-                `;
-                
-                chatMessages.appendChild(messageDiv);
-                messageDiv.style.marginTop = '1rem';
-                scrollToBottom();
-            });
-            
-            console.log('✅ Echo listener setup complete');
-        } catch (error) {
-            console.error('❌ Error setting up Echo:', error);
-        }
+    if (typeof window.Echo === 'undefined') {
+        console.error('❌ Echo is not available!');
     } else {
-        console.error('❌ Echo is still not available after fallback attempt. Real-time messaging will not work.');
+        console.log('✅ Echo is available globally');
+        
+       
+        const channel = window.Echo.private(`chat.{{ $booking->id }}`);
+        
+      
+        if (window.Echo.connector && window.Echo.connector.pusher) {
+            window.Echo.connector.pusher.bind_global((eventName, data) => {
+                console.log(`📡 Global event received: ${eventName}`, data);
+                
+                
+                if (eventName === 'NewMessage') {
+                    handleNewMessage(data);
+                }
+            });
+        }
     }
     
+    function handleNewMessage(data) {
+        
+        if (data.sender_id == {{ Auth::id() }}) {
+            console.log('Skipping own message');
+            return;
+        }
+        
+        displayNewMessage(data);
+    }
+    
+    function displayNewMessage(e) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex justify-start';
+        
+        let timestamp = '';
+        try {
+            timestamp = new Date(e.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } catch (err) {
+            console.error('Error formatting timestamp:', err);
+            timestamp = 'just now';
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="relative max-w-xl px-4 py-2 rounded-lg shadow bg-gray-800 text-white">
+                <div class="font-medium text-sm">${e.sender_name}</div>
+                <div class="mt-1">${e.message}</div>
+                <div class="mt-1 text-xs text-gray-400">
+                    ${timestamp}
+                </div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        messageDiv.style.marginTop = '1rem';
+        scrollToBottom();
+    }
+    
+   
     function sendMessage() {
         if (!messageInput.value.trim()) return;
         
@@ -230,37 +202,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            // Add message to chat
+           
             chatMessages.appendChild(messageDiv);
             
-            // Add some spacing between messages
+            
             messageDiv.style.marginTop = '1rem';
             
-            // Clear input
+            
             messageInput.value = '';
             
-            // Scroll to bottom
+           
             scrollToBottom();
         })
         .catch(error => {
             console.error('❌ Error sending message:', error);
-            // Replace alert with a more user-friendly approach
+            
             const errorDiv = document.createElement('div');
             errorDiv.className = 'p-2 mb-2 text-sm text-red-500 bg-red-100 rounded';
             errorDiv.textContent = 'Error sending message. Please try again.';
             chatMessages.appendChild(errorDiv);
             
-            // Remove error message after 3 seconds
+            
             setTimeout(() => {
                 errorDiv.remove();
             }, 3000);
         });
     }
     
-    // Handle button click
+   
     sendButton.addEventListener('click', sendMessage);
     
-    // Handle enter key in input
+   
     messageInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
