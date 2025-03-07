@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\DriverProfile;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\NewBookingNotification;
+use App\Notifications\BookingConfirmedNotification;
+use App\Notifications\BookingCancelledNotification;
 
 class BookingController extends Controller
 {
@@ -36,21 +39,14 @@ class BookingController extends Controller
                 'destination.required' => 'Destination is required'
             ]);
     
-            // Log all incoming request data for debugging
-            
-    
             $pickupDateTime = $request->pickup_date . ' ' . $request->pickup_time . ':00';
             
             $client_id = Auth::id();
-            
-            // Additional logging
-            
     
             // Verify driver exists before creating booking
             $driver = \App\Models\User::where('id', $request->driver_id)->first();
             
             if (!$driver) {
-                
                 return back()->with('error', 'Selected driver not found')->withInput();
             }
     
@@ -62,12 +58,13 @@ class BookingController extends Controller
                 'destination'  => $request->destination,
                 'status'       => 'pending',
             ]);
+            
+            // Send notification to the driver
+            $driver->notify(new NewBookingNotification($booking));
     
-          
             return redirect()->route('bookings.index')->with('success', 'Booking request sent successfully!');
     
-        }  catch (\Illuminate\Validation\ValidationException $e) {
-            
+        } catch (\Illuminate\Validation\ValidationException $e) {
             error_log('Booking Validation Failed: ' . json_encode([
                 'errors' => $e->errors(),
                 'input' => $request->all()
@@ -75,7 +72,6 @@ class BookingController extends Controller
             return back()->withErrors($e->errors())->withInput();
     
         } catch (\Exception $e) {
-            
             error_log('Booking Creation Error: ' . json_encode([
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -97,40 +93,64 @@ class BookingController extends Controller
     }
 
     public function updateStatus(Request $request, $bookingId)
-{
-    try {
-        $booking = Booking::findOrFail($bookingId);
-        
-        // Verify the user has permission to update this booking
-        if (Auth::user()->role == 'driver' && $booking->driver_id != Auth::id()) {
-            return back()->with('error', 'You are not authorized to update this booking.');
-        }
-        
-        if (Auth::user()->role == 'client' && $booking->client_id != Auth::id()) {
-            return back()->with('error', 'You are not authorized to update this booking.');
-        }
-        
-        // Additional validation for status change
-        if (Auth::user()->role == 'driver') {
-            $request->validate([
-                'status' => 'required|in:confirmed,cancelled'
-            ]);
-        }
-        
-        if (Auth::user()->role == 'client') {
-            // Clients can only cancel pending bookings
-            if ($booking->status != 'pending') {
-                return back()->with('error', 'You can only cancel pending bookings.');
+    {
+        try {
+            $booking = Booking::findOrFail($bookingId);
+            
+            // Verify the user has permission to update this booking
+            if (Auth::user()->role == 'driver' && $booking->driver_id != Auth::id()) {
+                return back()->with('error', 'You are not authorized to update this booking.');
             }
-            $request->merge(['status' => 'cancelled']);
+            
+            if (Auth::user()->role == 'client' && $booking->client_id != Auth::id()) {
+                return back()->with('error', 'You are not authorized to update this booking.');
+            }
+            
+            // Additional validation for status change
+            if (Auth::user()->role == 'driver') {
+                $request->validate([
+                    'status' => 'required|in:confirmed,cancelled'
+                ]);
+            }
+            
+            if (Auth::user()->role == 'client') {
+                // Clients can only cancel pending bookings
+                if ($booking->status != 'pending') {
+                    return back()->with('error', 'You can only cancel pending bookings.');
+                }
+                $request->merge(['status' => 'cancelled']);
+            }
+            
+            // Store the previous status to check if it changed
+            $previousStatus = $booking->status;
+            
+            $booking->status = $request->status;
+            $booking->save();
+            
+            // Send notifications based on the status change
+            if ($previousStatus != $booking->status) {
+                if ($booking->status == 'confirmed') {
+                    // Notify the client that the booking was confirmed
+                    $booking->client->notify(new BookingConfirmedNotification($booking));
+                } elseif ($booking->status == 'cancelled') {
+                    // Determine who cancelled the booking
+                    $cancelledBy = Auth::user()->role;
+                    
+                    // If driver cancels, notify the client
+                    if ($cancelledBy == 'driver') {
+                        $booking->client->notify(new BookingCancelledNotification($booking, 'driver'));
+                    }
+                    
+                    // If client cancels, notify the driver
+                    if ($cancelledBy == 'client') {
+                        $booking->driver->notify(new BookingCancelledNotification($booking, 'client'));
+                    }
+                }
+            }
+            
+            return back()->with('success', 'Booking status updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
-        
-        $booking->status = $request->status;
-        $booking->save();
-        
-        return back()->with('success', 'Booking status updated successfully.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'An error occurred: ' . $e->getMessage());
     }
-}
 }

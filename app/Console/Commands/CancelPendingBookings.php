@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use App\Notifications\BookingAutoCancelled;
+use App\Notifications\BookingCancelledNotification;
 
 class CancelPendingBookings extends Command
 {
@@ -56,9 +56,12 @@ class CancelPendingBookings extends Command
             // Log the cancellation for audit purposes
             Log::info("Auto-cancelled pending booking #{$booking->id} for pickup at {$booking->pickup_time}");
             
-            // Notify the client
+            // Notify the client and driver
             $client = $booking->client;
-            $client->notify(new BookingAutoCancelled($booking));
+            $driver = $booking->driver;
+            
+            $client->notify(new BookingCancelledNotification($booking, 'system'));
+            $driver->notify(new BookingCancelledNotification($booking, 'system'));
             
             $count++;
         }
